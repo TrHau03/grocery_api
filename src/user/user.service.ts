@@ -26,10 +26,29 @@ export class UserService {
             if (password !== confirmPassWord) {
                 throw new Error('PassWord and ConfirmPassWord is not match')
             }
+            
             const user = new this.userModel({ name, email, password, phone });
             await user.save();
         } catch (error: any) {
             responseDTO = { ...responseDTO, status: false, message: 'Register Failed' }
+        }
+        return responseDTO;
+    }
+    async login(requestDTO: UserLoginRequestDTO): Promise<UserResponseDTO> {
+        let responseDTO: UserResponseDTO = {
+            status: true,
+            message: 'Login completed',
+            data: null
+        }
+        try {
+            const {email, password} = requestDTO;
+            const user  =   await this.userModel.findOne({email, password});
+            if(!user){
+                 throw new Error("Email or Password is incorrect!");
+            }
+            responseDTO.data = user;
+        } catch (error: any) {
+            responseDTO = { ...responseDTO, status: false, message: 'Login Failed' }
         }
         return responseDTO;
     }
