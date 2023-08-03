@@ -6,11 +6,17 @@ export type ProductDocument = Product & Document;
 @Schema()
 export class Product {
     @Prop()
+    key: number;
+    @Prop()
+    img: string;
+    @Prop()
     name: string;
     @Prop()
-    price: number;
-    @Prop()
     quantity: number;
+    @Prop()
+    category: string;
+    @Prop()
+    price: number;
     @Prop()
     description: string;
 }

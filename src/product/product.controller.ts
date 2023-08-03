@@ -27,6 +27,15 @@ export class ProductController {
             return res.status(HttpStatus.BAD_REQUEST).json(error);
         }
     }
+    @Get('getAll')
+    async getAllProduct(@Res() res: Response) {
+        try {
+            const responseDTO = await this.productService.getAllProduct();
+            return res.status(HttpStatus.OK).json(responseDTO)
+        } catch (error: any) {
+            return res.status(HttpStatus.BAD_REQUEST).json(error);
+        }
+    }
     @Post('update/:id')
     async update(@Param('id') id: string, @Body() body: ProductInsertRequestDTO, @Res() res: Response) {
         try {
