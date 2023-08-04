@@ -12,6 +12,7 @@ export class UserController {
     @Post('register')
     async register(@Body() body: UserRegisterRequestDTO, @Res() res: Response) {
         try {
+            console.log(body);
             const responseDTO = await this.userService.register(body);
             return res.status(HttpStatus.OK).json(responseDTO);
         } catch (error: any) {
@@ -59,7 +60,7 @@ export class UserController {
     @Get('home')
     @Render('index')
     async home(@Res() res: Response){
-        return{ text: "Hello Word"}
+        return{ text: "Hello Word!"}
     }
 
 }

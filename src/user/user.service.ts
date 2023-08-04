@@ -27,13 +27,12 @@ export class UserService {
         }
         try {
             console.log(requestDTO);
-            
-            const { name, email, password, confirmPassword } = requestDTO;
+            const { name, email, password, confirmPassword,phone } = requestDTO;
             if (password != confirmPassword) {
                 throw new Error('PassWord and ConfirmPassWord is not match')
             }
             const hashPassWord = await bcrypt.hash(password, saltOrRounds);
-            const user = new this.userModel({ name, email, password: hashPassWord });
+            const user = new this.userModel({ name, email, password: hashPassWord,phone });
             console.log(user);
             
             await user.save();
