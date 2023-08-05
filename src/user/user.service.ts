@@ -10,12 +10,41 @@ import { User, UserDocument } from './user.schema';
 import { UserLoginRequestDTO } from './dto/user_login_request.dto';
 import { UserRegisterRequestDTO } from './dto/user_register_request.dto';
 import { UserResponseDTO } from './dto/user_response.dto';
-
+import { UserforgotPassword } from './dto/user_forgotpassword_request.dto';
+import { MailerService } from '@nestjs-modules/mailer';
+import { log } from 'console';
 @Injectable()
 export class UserService {
     constructor(@InjectModel(User.name)
     private readonly userModel: Model<UserDocument>,
-        private jwtService: JwtService) {
+        private jwtService: JwtService,
+        private readonly mailerService: MailerService,
+    ) {
+    }
+    async sendMail(requestDTO: UserforgotPassword): Promise<any> {
+        let responseDTO: UserResponseDTO = {
+            status: true,
+            message: "Get User Successfully",
+            data: null,
+        };
+        try {
+            const { email } = requestDTO;
+            console.log(email);
+            
+            const code = Math.floor(Math.random() * 1000000);
+            this.mailerService.sendMail({
+                to: email,
+                from: 'aaaaaahau@gmail.com',
+                subject: 'Testing Mail',
+                text: 'welcome',
+                html: "<h1>Your code : " + code + "<h1/>",
+            });
+            responseDTO = { ...responseDTO, data: code }
+            return responseDTO;
+        } catch (error: any) {
+            responseDTO = { ...responseDTO, status: false }
+            return responseDTO;
+        }
     }
     //Hàm insert vào database
     async register(requestDTO: UserRegisterRequestDTO): Promise<UserResponseDTO> {
@@ -27,14 +56,14 @@ export class UserService {
         }
         try {
             console.log(requestDTO);
-            const { name, email, password, confirmPassword,phone } = requestDTO;
+            const { name, email, password, confirmPassword, phone } = requestDTO;
             if (password != confirmPassword) {
                 throw new Error('PassWord and ConfirmPassWord is not match')
             }
             const hashPassWord = await bcrypt.hash(password, saltOrRounds);
-            const user = new this.userModel({ name, email, password: hashPassWord,phone });
+            const user = new this.userModel({ name, email, password: hashPassWord, phone });
             console.log(user);
-            
+
             await user.save();
         } catch (error: any) {
             responseDTO = { ...responseDTO, status: false, message: 'Register Failed' }
@@ -50,7 +79,7 @@ export class UserService {
         try {
             const { email, password } = requestDTO;
             const user = await this.userModel.findOne({ email });
-            
+
             const isMatch = await bcrypt.compare(password, user.password);
             if (!user) {
                 throw new Error("Email or Password is incorrect!");
@@ -61,7 +90,7 @@ export class UserService {
             responseDTO.data = {
                 user: user,
                 access_token: await this.jwtService.signAsync({ email: user.email, name: user.name }),
-                refresh_token: await this.jwtService.signAsync({ email: user.email, name: user.name },{expiresIn: '30d'}),
+                refresh_token: await this.jwtService.signAsync({ email: user.email, name: user.name }, { expiresIn: '30d' }),
 
             };
         } catch (error: any) {
@@ -83,6 +112,15 @@ export class UserService {
             console.log("Get User Failed", error);
         }
     }
+    async forgotPassword(requestDTO: UserforgotPassword): Promise<UserResponseDTO> {
+        try {
+            const { email } = requestDTO;
+            return null;
+        } catch (error: any) {
+            console.log(error);
+
+        }
+    }
     async refreshToken(requestDTO: any): Promise<UserResponseDTO> {
         let responseDTO: UserResponseDTO = {
             status: true,
@@ -99,7 +137,7 @@ export class UserService {
                 access_token: this.jwtService.sign({ email: decode.email, name: decode.name })
             }
         } catch (error) {
-            responseDTO.data = {...responseDTO, status: false, message: "Refress token failed!"}
+            responseDTO.data = { ...responseDTO, status: false, message: "Refress token failed!" }
         }
         return responseDTO;
 

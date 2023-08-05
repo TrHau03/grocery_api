@@ -4,11 +4,21 @@ import { Response, Request } from "express";
 import { UserRegisterRequestDTO } from "./dto/user_register_request.dto";
 import { UserLoginRequestDTO } from "./dto/user_login_request.dto";
 import { AuthGuard } from "src/middleware/guard.middleware";
+import { log } from "console";
+import { UserforgotPassword } from "./dto/user_forgotpassword_request.dto";
 //localhost:3000/product
 @Controller('user')
 export class UserController {
     constructor(private readonly userService: UserService) { }
 
+    @Post('sendMail')
+    sendMail(@Body() body: UserforgotPassword){
+        try {
+        return this.userService.sendMail(body);
+        } catch (error :any) {
+            log(error)
+        }
+    }
     @Post('register')
     async register(@Body() body: UserRegisterRequestDTO, @Res() res: Response) {
         try {
