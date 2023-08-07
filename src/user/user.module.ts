@@ -26,7 +26,6 @@ import { MailerModule } from '@nestjs-modules/mailer';
     JwtModule.register({
       global: true,
       secret: "myToken",
-      signOptions: { expiresIn: '60s' },
     }),
 
   ],

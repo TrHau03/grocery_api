@@ -30,7 +30,7 @@ export class UserService {
         try {
             const { email } = requestDTO;
             console.log(email);
-            
+
             const code = Math.floor(Math.random() * 1000000);
             this.mailerService.sendMail({
                 to: email,
@@ -78,6 +78,8 @@ export class UserService {
         }
         try {
             const { email, password } = requestDTO;
+            console.log(email, password);
+            
             const user = await this.userModel.findOne({ email });
 
             const isMatch = await bcrypt.compare(password, user.password);
@@ -89,14 +91,32 @@ export class UserService {
             }
             responseDTO.data = {
                 user: user,
-                access_token: await this.jwtService.signAsync({ email: user.email, name: user.name }),
-                refresh_token: await this.jwtService.signAsync({ email: user.email, name: user.name }, { expiresIn: '30d' }),
+                access_token: await this.jwtService.sign({ email: user.email, name: user.name },  { expiresIn: 10 }),
+                refresh_token: await this.jwtService.sign({ email: user.email, name: user.name }, { expiresIn: '30d' }),
 
             };
         } catch (error: any) {
             responseDTO = { ...responseDTO, status: false, message: 'Login Failed' }
         }
         return responseDTO;
+    }
+    async checkToken(requestDTO: any): Promise<any> {
+        const { access_token } = requestDTO;
+        let responseDTO: UserResponseDTO = {
+            status: true,
+            message: 'Login completed',
+            data: null
+        }
+        try {
+            const token = this.jwtService.verify(access_token);
+            console.log(token);
+            if(token == null){
+                responseDTO.status = false;
+            }
+        return responseDTO;
+        } catch (error) {
+            return error;
+        }
     }
     async getAllUser(): Promise<UserResponseDTO> {
         try {
@@ -129,7 +149,11 @@ export class UserService {
         }
         try {
             const { email, refreshToken } = requestDTO;
+            console.log(refreshToken);
+
             const decode = this.jwtService.verify(refreshToken);
+            console.log(decode);
+
             if (decode.email !== email) {
                 throw new Error("Refresh token is incorrect!")
             }
@@ -137,7 +161,7 @@ export class UserService {
                 access_token: this.jwtService.sign({ email: decode.email, name: decode.name })
             }
         } catch (error) {
-            responseDTO.data = { ...responseDTO, status: false, message: "Refress token failed!" }
+            responseDTO = { ...responseDTO, status: false, message: "Refress token failed!" }
         }
         return responseDTO;
 
