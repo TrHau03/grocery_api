@@ -6,6 +6,7 @@ import { UserLoginRequestDTO } from "./dto/user_login_request.dto";
 import { AuthGuard } from "src/middleware/guard.middleware";
 import { log } from "console";
 import { UserforgotPassword } from "./dto/user_forgotpassword_request.dto";
+import { UserChangePasswordDTO } from "./dto/user_changepassword_request.dto";
 //localhost:3000/product
 @Controller('user')
 export class UserController {
@@ -65,10 +66,21 @@ export class UserController {
         }
     }
 
+
+    @Post('changePassword')
+    async changePassword(@Body() body : UserChangePasswordDTO,@Res() res: Response){
+        try {
+            const responseDTO = await this.userService.changePassword(body);
+            return res.status(HttpStatus.OK).json(responseDTO);
+        } catch (error) {
+            return res.status(HttpStatus.BAD_REQUEST).json(error);
+        
+        }
+    }
     @Post('refresh_token')
     async refreshToken(@Body() body : any, @Res() res: Response){
         try {
-            let responseDTO = await this.userService.refreshToken(body);
+            const responseDTO = await this.userService.refreshToken(body);
             return res.status(HttpStatus.OK).json(responseDTO);
         } catch (error :any) {
             return res.status(HttpStatus.BAD_REQUEST).json(error);

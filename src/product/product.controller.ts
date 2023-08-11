@@ -1,8 +1,9 @@
-import { Controller, Get, Post, HttpCode, HttpStatus, Body, Param, Query, Res, Req } from "@nestjs/common";
+import { Controller, Get, Post, HttpCode, HttpStatus, Body, Param, Query, Res, Req, UseGuards} from "@nestjs/common";
 import { ProductService } from "./product.service";
 import { ProductInsertRequestDTO } from "./dto/product_insert_request.dto";
 import { Response, Request } from "express";
 import { ProductGetRequestDTO } from "./dto/product_get_request.dto";
+import { AuthGuard } from "src/middleware/guard.middleware";
 //localhost:3000/product
 @Controller('product')
 export class ProductController {
@@ -28,6 +29,7 @@ export class ProductController {
         }
     }
     @Get('getAll')
+    @UseGuards(AuthGuard)
     async getAllProduct(@Res() res: Response) {
         try {
             const responseDTO = await this.productService.getAllProduct();

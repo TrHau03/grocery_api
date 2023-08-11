@@ -12,7 +12,7 @@ import { UserRegisterRequestDTO } from './dto/user_register_request.dto';
 import { UserResponseDTO } from './dto/user_response.dto';
 import { UserforgotPassword } from './dto/user_forgotpassword_request.dto';
 import { MailerService } from '@nestjs-modules/mailer';
-import { log } from 'console';
+import { UserChangePasswordDTO } from './dto/user_changepassword_request.dto';
 @Injectable()
 export class UserService {
     constructor(@InjectModel(User.name)
@@ -79,7 +79,7 @@ export class UserService {
         try {
             const { email, password } = requestDTO;
             console.log(email, password);
-            
+
             const user = await this.userModel.findOne({ email });
 
             const isMatch = await bcrypt.compare(password, user.password);
@@ -91,10 +91,12 @@ export class UserService {
             }
             responseDTO.data = {
                 user: user,
-                access_token: await this.jwtService.sign({ email: user.email, name: user.name },  { expiresIn: 10 }),
+                access_token: await this.jwtService.sign({ email: user.email, name: user.name }, { expiresIn: 10 }),
                 refresh_token: await this.jwtService.sign({ email: user.email, name: user.name }, { expiresIn: '30d' }),
 
             };
+            console.log(responseDTO);
+
         } catch (error: any) {
             responseDTO = { ...responseDTO, status: false, message: 'Login Failed' }
         }
@@ -109,11 +111,11 @@ export class UserService {
         }
         try {
             const token = this.jwtService.verify(access_token);
-            console.log(token);
-            if(token == null){
+            console.log("check", token);
+            if (token == null) {
                 responseDTO.status = false;
             }
-        return responseDTO;
+            return responseDTO;
         } catch (error) {
             return error;
         }
@@ -132,14 +134,25 @@ export class UserService {
             console.log("Get User Failed", error);
         }
     }
-    async forgotPassword(requestDTO: UserforgotPassword): Promise<UserResponseDTO> {
+    async changePassword(requestDTO: UserChangePasswordDTO): Promise<UserResponseDTO> {
+        const saltOrRounds = 10;
+        let responseDTO: UserResponseDTO = {
+            status: true,
+            message: "Change Password Successfully",
+            data: null,
+        };
         try {
-            const { email } = requestDTO;
-            return null;
+            const { email, password } = requestDTO;
+            const user = await this.userModel.findOne({ email });
+            const hashPassWord = await bcrypt.hash(password, saltOrRounds);
+            console.log("userChangePassword", user);
+            user.password = hashPassWord ? hashPassWord : user.password;
+            user.save();
         } catch (error: any) {
-            console.log(error);
-
+            responseDTO = { ...responseDTO, status: false, message: "Change Password: Failed" }
         }
+        return responseDTO;
+
     }
     async refreshToken(requestDTO: any): Promise<UserResponseDTO> {
         let responseDTO: UserResponseDTO = {
